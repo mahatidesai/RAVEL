@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "361011152278",
+    "project_id": "ravel-2056b",
+    "storage_bucket": "ravel-2056b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:361011152278:android:61ec82f398f76e2e1bc9b7",
+        "android_client_info": {
+          "package_name": "com.example.carrental"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAD4SEaJw7-1nwTbaR_9x60wLdnzbaIdw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
