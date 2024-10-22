@@ -80,7 +80,7 @@ class seater extends StatelessWidget{
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: (){
-
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => vehicle_information("CAR","9 Seater")));
                           },
                             child: Image.asset('assets/images/9seater.png', fit: BoxFit.fitWidth,)),
                       ),

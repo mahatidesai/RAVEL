@@ -16,6 +16,7 @@ async{
       'vehicleRent': vehicleRent,
       'vehicleLocation': vehicleLocation,
       'fuelType': fuelType,
+      'registrationDate': DateTime.now().toIso8601String(),
     };
 
 

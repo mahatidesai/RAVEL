@@ -244,11 +244,23 @@ class _user_registrationState extends State<user_registration> {
                                 child: buttons("DONE", 18.sp, () async {
                                   if (nameValidation(name.text)==true && emailValidation(email.text)==true && licenseValidation(LN.text)==true) {
                                     var firebaseID = await FirebaseAuth.instance.currentUser?.uid;
-                                    registerUser(firebaseID.toString(), name.text.toString(), email.text.toString(), widget.phoneNumber.toString(), LN.text.toString());
-                                    Navigator.pushReplacement(context,
-                                        MaterialPageRoute(
-                                            builder: (context) => choice()));
+                                    bool response = await registerUser(firebaseID.toString(), name.text.toString(), email.text.toString(), widget.phoneNumber.toString(), LN.text.toString());
+                                    print("response:$response");
+                                    if(response==true){
+                                      Navigator.pushReplacement(context,
+                                      MaterialPageRoute(
+                                      builder: (context) => choice()));
+                                      }
+                                    }
+                                  else{
+                                    showDialog(context: context, builder: (context){
+                                      return AlertDialog(
+                                        title: texts("User not regitsered!\n Register again!", 16.sp, Colors.white, FontWeight.normal),
+
+                                      );
+                                    });
                                   }
+
                                 }
                                 )),
                           ),

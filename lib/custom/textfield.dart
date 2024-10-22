@@ -5,11 +5,9 @@ class textfield extends StatelessWidget{
 
   String fieldName;
   TextEditingController textEditingController;
-  String initialValue;
   textfield(
       this.fieldName,
       this.textEditingController,
-      this.initialValue
       );
 
   @override

@@ -20,29 +20,12 @@ class more_info extends StatefulWidget{
 }
 
 class _more_infoState extends State<more_info> {
-  List<String> carImages = ['1', '2', '3', '4', '5'];
   List<DateTime?> _selectedDates = [
     DateTime.now(),
     DateTime.now().add(Duration(days: 3))
   ];
   String firstDate = DateTime.now().toLocal().toString();
   String lastDate = DateTime.now().toLocal().add(Duration(days: 3)).toString();
-
-  final config = CalendarDatePicker2Config(
-    calendarType: CalendarDatePicker2Type.range,
-    selectedDayHighlightColor: Color.fromRGBO(228, 221, 205, 1),
-    allowSameValueSelection: true,
-    selectedRangeHighlightColor: Colors.white24,
-    weekdayLabelTextStyle:
-    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-    controlsTextStyle: TextStyle(color: Colors.white),
-    dayTextStyle: TextStyle(color: Colors.white),
-    selectedDayTextStyle: TextStyle(color: Colors.black),
-    monthTextStyle: TextStyle(color: Colors.white),
-    selectedMonthTextStyle:  TextStyle(color: Colors.black),
-    yearTextStyle: TextStyle(color: Colors.white),
-      selectedYearTextStyle:  TextStyle(color: Colors.black)
-  );
 
   void showAlert(String result, Color displaycolor){
     showDialog(context: context, builder: (context){
@@ -60,6 +43,32 @@ class _more_infoState extends State<more_info> {
     }) ;
   }
 
+  final config = CalendarDatePicker2Config(
+    calendarType: CalendarDatePicker2Type.range,
+    selectedDayHighlightColor: Color.fromRGBO(228, 221, 205, 1),
+    allowSameValueSelection: true,
+    selectedRangeHighlightColor: Colors.white24,
+      firstDate: DateTime.now(), // Past dates visible
+      lastDate: DateTime(2100),
+      selectableDayPredicate: (day) {
+        DateTime today = DateTime.now();
+        return day.isAfter(DateTime(today.year, today.month, today.day).subtract(Duration(days: 1)));
+      },
+      weekdayLabelTextStyle:
+    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    controlsTextStyle: TextStyle(color: Colors.white),
+    dayTextStyle: TextStyle(color: Colors.white),
+      animateToDisplayedMonthDate: true,
+    selectedDayTextStyle: TextStyle(color: Colors.black),
+    monthTextStyle: TextStyle(color: Colors.white),
+    selectedMonthTextStyle:  TextStyle(color: Colors.black),
+    yearTextStyle: TextStyle(color: Colors.white),
+      selectedYearTextStyle:  TextStyle(color: Colors.black)
+  );
+
+
+
+
   List<dynamic> vehicleInformation = [];
   List<dynamic> userInformation = [];
 
@@ -67,6 +76,8 @@ class _more_infoState extends State<more_info> {
   void initState() {
     super.initState();
     _loadVehicleData();
+    razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
   }
 
   Future<void> _loadVehicleData() async {
@@ -92,11 +103,7 @@ class _more_infoState extends State<more_info> {
     }
   }
 
-  Razorpay razorpay = Razorpay();
-
-
-  void _handlePaymentSuccess(PaymentSuccessResponse response) async{
-    showAlert("Payment Sucessfull!!\nBooking Confirmed", Colors.green);
+  Future<void> _saveRentingInfo() async{
     final renterFirebaseID = await FirebaseAuth.instance.currentUser!.uid.toString();
     final ownerFirebaseID = vehicleInformation[0]['firebaseID'].toString();
     final vehicleID = vehicleInformation[0]['_id'].toString();
@@ -123,6 +130,20 @@ class _more_infoState extends State<more_info> {
     }
   }
 
+  Razorpay razorpay = Razorpay();
+
+  @override
+  void dispose() {
+    razorpay.clear(); // Clear razorpay listeners on dispose
+    super.dispose();
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    showAlert("Payment Sucessfull!!\nBooking Confirmed", Colors.green);
+    await _saveRentingInfo();
+    print("Saved");
+  }
+
   void _handlePaymentError(PaymentFailureResponse response) {
     showAlert("Payment Unscessfull!!", Colors.red);
   }
@@ -130,8 +151,7 @@ class _more_infoState extends State<more_info> {
 
   @override
   Widget build(BuildContext context) {
-    razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -190,8 +210,10 @@ class _more_infoState extends State<more_info> {
                                             userInformation.isNotEmpty?texts("PhoneNo : "+int.parse(userInformation[0]['phone']).toString(), 19.sp, Colors.white,FontWeight.normal)
                                                 :texts('Loading..', 19.sp, Colors.white, FontWeight.normal),
                                             SizedBox(height: 2.h,),
+                                            texts("Location: "+vehicleInformation[0]['vehicleLocation'], 19.sp, Colors.white, FontWeight.normal),
+                                            SizedBox(height: 2.h,),
                                             texts("Description: "+vehicleInformation[0]['vehicleDescription'], 19.sp, Colors.white, FontWeight.normal),
-                                          ]),
+                                            ]),
                                         SizedBox(height: 5.h,),
                                         texts("Images :", 19.sp, Colors.white, FontWeight.normal),
                                         SizedBox(height: 3.h,),
@@ -279,8 +301,13 @@ class _more_infoState extends State<more_info> {
                                                     children: [
                                                       texts("Pay to confirm booking!!", 16.sp, Colors.white, FontWeight.normal),
                                                       SizedBox(height:1.h),
-                                                      texts("Rs. ${vehicleInformation[0]['vehicleRent']}",16.sp, Colors.white, FontWeight.normal)
-                                                    ],
+                                                      texts(
+                                                          "Rs. " +
+                                                              ((vehicleInformation[0]['vehicleRent'] / 3).toInt() * ((_selectedDates[1]!.difference(_selectedDates[0]!).inDays)+1)).toString(),
+                                                          16.sp,
+                                                          Colors.white,
+                                                          FontWeight.normal
+                                                      )],
                                                   ),
                                                   backgroundColor: Color.fromRGBO(4,31,52,20),
                                                   elevation: 2,
@@ -289,7 +316,7 @@ class _more_infoState extends State<more_info> {
                                                       Navigator.pop(context);
                                                       var options = {
                                                         'key': 'rzp_test_srxx5ZiaXSlqeq',
-                                                        'amount': vehicleInformation[0]['vehicleRent']*100,
+                                                        'amount': ((vehicleInformation[0]['vehicleRent'] ~/ 3) * 100 * ((_selectedDates[1]!.difference(_selectedDates[0]!).inDays)+1)),
                                                         'name': '${vehicleInformation[0]['vehicleName']}',
                                                         'description': 'Ewallet Recharge',
                                                         'prefill': {
